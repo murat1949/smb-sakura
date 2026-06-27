@@ -872,6 +872,61 @@ async function loadDashboard() {
 // ============================================================
 // ФОРМЫ ВВОДА — SUPABASE
 // ============================================================
+function submitLead() {
+  if (!validate([['lDate','Дата'],['lName','Имя клиента'],['lSource','Источник']])) return;
+  post(document.getElementById('lBtn'), {
+    type: 'lead',
+    date: document.getElementById('lDate').value,
+    name: document.getElementById('lName').value,
+    phone: document.getElementById('lPhone').value,
+    source: document.getElementById('lSource').value,
+    procedure: document.getElementById('lProcedure').value,
+    status: document.getElementById('lStatus').value
+  });
+}
+
+function submitConsult() {
+  if (!validate([['cDate','Дата'],['cDoctor','Врач'],['cProcedure','Процедура']])) return;
+  post(document.getElementById('cBtn'), {
+    type: 'consult',
+    date: document.getElementById('cDate').value,
+    doctor: document.getElementById('cDoctor').value,
+    procedure: document.getElementById('cProcedure').value,
+    result: document.getElementById('cResult').value,
+    comment: document.getElementById('cComment').value
+  });
+}
+
+function submitProcedure() {
+  if (!validate([['pDate','Дата'],['pDoctor','Врач'],['pName','Процедура'],['pRevenue','Стоимость']])) return;
+  post(document.getElementById('pBtn'), {
+    type: 'procedure',
+    date: document.getElementById('pDate').value,
+    doctor: document.getElementById('pDoctor').value,
+    name: document.getElementById('pName').value,
+    revenue: document.getElementById('pRevenue').value,
+    cost: document.getElementById('pCost').value || 0,
+    payment: document.getElementById('pPayment').value,
+    clientType: document.getElementById('pClientType').value
+  });
+}
+
+function submitFinance() {
+  if (!validate([['fDate','Дата'],['fRevenue','Выручка'],['fCash','Остаток']])) return;
+  const ads   = parseFloat(document.getElementById('fAds').value)    || 0;
+  const sal   = parseFloat(document.getElementById('fSalary').value) || 0;
+  const rent  = parseFloat(document.getElementById('fRent').value)   || 0;
+  const other = parseFloat(document.getElementById('fOther').value)  || 0;
+  post(document.getElementById('fBtn'), {
+    type: 'finance',
+    date: document.getElementById('fDate').value,
+    revenue: document.getElementById('fRevenue').value,
+    cash: document.getElementById('fCash').value,
+    expenses: ads + sal + rent + other,
+    ads, salary: sal, rent, other
+  });
+}
+
 async function post(btn, payload) {
   btn.disabled = true;
   const orig = btn.textContent;
