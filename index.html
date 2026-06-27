@@ -867,7 +867,7 @@ async function loadDashboard() {
 
   } catch(e) {
     console.error('Supabase error:', e);
-    document.getElementById('mainAlert').textContent = '⚠️ Нет данных — ДЕМО режим';
+    if (mainAlert) mainAlert.style.display = 'none';
   }
 }
 
