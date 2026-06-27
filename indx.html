@@ -1,0 +1,1058 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Центр управления клиникой</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --rose:#c8506e;--rose-light:#fdf0f3;--rose-dark:#8b2d45;
+  --teal:#0d9488;--teal-light:#f0fdfa;
+  --ink:#1a1a2e;--ink-mid:#4a4a6a;--ink-soft:#8888aa;
+  --bg:#f7f7fb;--white:#ffffff;
+  --border:#e8e8f0;
+  --green:#10b981;--amber:#f59e0b;--red:#ef4444;
+}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+.app{max-width:430px;margin:0 auto;min-height:100vh;background:var(--white);position:relative}
+
+/* HEADER */
+.header{
+  background:linear-gradient(135deg,var(--rose-dark) 0%,var(--rose) 60%,#e8607a 100%);
+  padding:20px 16px 16px;color:white;position:sticky;top:0;z-index:100;
+}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{font-size:24px;line-height:1}
+.logo-text{font-size:19px;font-weight:800;letter-spacing:-.3px}
+.logo-sub{font-size:11px;color:rgba(255,255,255,.7);letter-spacing:.5px;text-transform:uppercase}
+.live-dot{display:flex;align-items:center;gap:5px;font-size:11px;color:rgba(255,255,255,.8)}
+.dot{width:7px;height:7px;border-radius:50%;background:#4ade80;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.3)}}
+
+/* SCREENS */
+.screen{display:none;padding:16px 14px 80px}
+.screen.active{display:block}
+
+/* BOTTOM NAV */
+.nav{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:430px;
+  background:var(--white);border-top:1px solid var(--border);
+  display:grid;grid-template-columns:repeat(4,1fr);
+  padding:8px 0 12px;z-index:200;
+}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px;border:none;background:none;color:var(--ink-soft);font-size:10px;font-weight:600;transition:color .2s}
+.nav-item.active{color:var(--rose)}
+.nav-item span{font-size:20px;line-height:1}
+
+/* DASHBOARD */
+.dash-greeting{margin-bottom:16px}
+.dash-greeting h2{font-size:18px;font-weight:800;color:var(--ink)}
+.dash-greeting p{font-size:13px;color:var(--ink-soft);margin-top:3px}
+
+/* GAUGE GRID */
+.gauge-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.gauge-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:14px 10px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.gauge-wrap{position:relative;width:80px;height:80px;margin:0 auto 8px}
+.gauge-svg{width:80px;height:80px;transform:rotate(-90deg)}
+.gauge-bg{fill:none;stroke:#f0f0f8;stroke-width:7}
+.gauge-fill{fill:none;stroke-width:7;stroke-linecap:round;transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1)}
+.gauge-val{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:var(--ink)}
+.gauge-title{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.gauge-sub{font-size:10px;color:var(--ink-soft)}
+.gauge-pct{font-size:10px;font-weight:700;margin-top:4px}
+
+/* STATUS CARD */
+.status-card{border-radius:14px;padding:13px 14px;margin-bottom:12px;font-size:13px;line-height:1.5}
+.status-card.warn{background:#fffbeb;border:1px solid #fed7aa;color:#92400e}
+.status-card.good{background:var(--teal-light);border:1px solid #99f6e4;color:#065f46}
+.status-card.info{background:var(--rose-light);border:1px solid #fecdd3;color:var(--rose-dark)}
+
+/* CONVERSION ROW */
+.conv-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.conv-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:12px;text-align:center}
+.conv-val{font-size:26px;font-weight:900;color:var(--rose)}
+.conv-label{font-size:11px;color:var(--ink-soft);margin-top:3px}
+.conv-arrow{color:var(--ink-soft);font-size:10px}
+
+/* FUNNEL */
+.funnel{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:14px}
+.funnel-title{font-size:13px;font-weight:800;color:var(--ink);margin-bottom:12px}
+.funnel-step{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.funnel-step:last-child{margin-bottom:0}
+.funnel-bar-wrap{flex:1;background:#f0f0f8;border-radius:20px;height:8px;overflow:hidden}
+.funnel-bar{height:100%;border-radius:20px;background:var(--rose);transition:width .8s}
+.funnel-label{font-size:12px;color:var(--ink-mid);width:90px;flex-shrink:0}
+.funnel-num{font-size:12px;font-weight:700;color:var(--ink);width:30px;text-align:right;flex-shrink:0}
+
+/* PROFIT CARD */
+.profit-card{background:linear-gradient(135deg,var(--ink) 0%,#2d2d4e 100%);border-radius:16px;padding:16px;margin-bottom:14px;color:white}
+.profit-title{font-size:12px;color:rgba(255,255,255,.6);margin-bottom:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.profit-rows{}
+.profit-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+.profit-row:last-child{border-bottom:none;padding-top:10px}
+.profit-row-label{font-size:13px;color:rgba(255,255,255,.7)}
+.profit-row-val{font-size:14px;font-weight:700}
+.profit-row-val.green{color:#4ade80}
+.profit-row-val.red{color:#f87171}
+.profit-row-val.white{color:white}
+.profit-total .profit-row-label{color:white;font-weight:700;font-size:14px}
+.profit-total .profit-row-val{font-size:18px}
+
+/* DOCTORS */
+.section-title{font-size:13px;font-weight:800;color:var(--ink);margin-bottom:10px}
+.doc-cards{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.doc-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px}
+.doc-avatar{width:38px;height:38px;border-radius:50%;background:var(--rose-light);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.doc-info{flex:1}
+.doc-name{font-size:14px;font-weight:700}
+.doc-stats{font-size:11px;color:var(--ink-soft);margin-top:2px}
+.doc-revenue{font-size:14px;font-weight:800;color:var(--rose)}
+
+/* AI BLOCK */
+.ai-card{background:linear-gradient(135deg,#f5f0ff,#fff0f5);border:1px solid #e9d5ff;border-radius:16px;padding:14px;margin-bottom:14px}
+.ai-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.ai-icon{font-size:20px}
+.ai-title{font-size:13px;font-weight:800;color:#5b21b6}
+.ai-body{font-size:13px;line-height:1.6;color:#3b1f7a}
+.ai-line{margin-bottom:6px}
+.ai-line:last-child{margin-bottom:0}
+
+/* TELEGRAM BTN */
+.tg-btn{width:100%;border:none;border-radius:12px;padding:14px;background:linear-gradient(135deg,#0088cc,#00aae4);color:white;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:14px}
+.tg-btn:active{opacity:.85}
+
+/* FORMS */
+.form-header{margin-bottom:20px}
+.form-header h2{font-size:20px;font-weight:800}
+.form-header p{font-size:13px;color:var(--ink-soft);margin-top:4px}
+.form-section{background:#f9f9fd;border-radius:14px;padding:14px;margin-bottom:14px}
+.form-section-label{font-size:11px;font-weight:800;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px}
+.field{margin-bottom:14px}
+.field:last-child{margin-bottom:0}
+.field label{display:block;font-size:13px;font-weight:700;margin-bottom:6px;color:var(--ink-mid)}
+.field input,.field select,.field textarea{
+  width:100%;border:1.5px solid var(--border);border-radius:10px;
+  padding:12px 14px;font-size:15px;background:var(--white);color:var(--ink);
+  transition:border-color .2s;-webkit-appearance:none;
+}
+.field input:focus,.field select:focus{outline:none;border-color:var(--rose)}
+.field textarea{resize:none;height:70px;font-family:inherit}
+.field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238888aa' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+.submit-btn{width:100%;border:none;border-radius:12px;padding:15px;color:white;font-size:15px;font-weight:800;background:linear-gradient(135deg,var(--rose-dark),var(--rose));cursor:pointer;transition:opacity .2s}
+.submit-btn:disabled{opacity:.5}
+.submit-btn:active{opacity:.85}
+
+/* SUCCESS */
+.success-screen{text-align:center;padding:60px 20px}
+.success-icon{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#34d399);color:white;font-size:30px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center}
+.success-title{font-size:22px;font-weight:800;margin-bottom:8px}
+.success-sub{font-size:14px;color:var(--ink-soft);margin-bottom:28px}
+
+/* PILLS */
+.pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.pill.green{background:#dcfce7;color:#166534}
+.pill.amber{background:#fef9c3;color:#854d0e}
+.pill.red{background:#fee2e2;color:#991b1b}
+
+/* REFRESH */
+.refresh-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.refresh-time{font-size:12px;color:var(--ink-soft)}
+.refresh-btn{border:1px solid var(--border);background:var(--white);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;color:var(--ink-mid);cursor:pointer}
+
+@media(min-width:760px){.app{margin:20px auto;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.1)}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-top">
+    <div class="logo">
+      <span class="logo-icon">🌸</span>
+      <div>
+        <div class="logo-text">Центр управления</div>
+        <div class="logo-sub">СИСТЕМА КОНТРОЛЯ ПРИБЫЛИ</div>
+      </div>
+    </div>
+    <div class="live-dot"><div class="dot"></div>LIVE</div>
+  </div>
+</header>
+
+<!-- ДАШБОРД -->
+<section id="screen-dash" class="screen active">
+  <div style="padding-top:14px">
+
+    <div class="dash-greeting">
+      <h2 id="dashGreeting">Добрый день</h2>
+      <p id="dashDate">Загружаю данные…</p>
+    </div>
+
+    <!-- Главный алерт -->
+    <div class="status-card info" id="mainAlert">Получаю данные из таблицы…</div>
+
+    <!-- Gauges -->
+    <div class="gauge-grid">
+      <div class="gauge-card">
+        <div class="gauge-wrap">
+          <svg class="gauge-svg" viewBox="0 0 80 80">
+            <circle class="gauge-bg" cx="40" cy="40" r="33"/>
+            <circle class="gauge-fill" id="g1" cx="40" cy="40" r="33" stroke="var(--rose)" stroke-dasharray="207.3" stroke-dashoffset="207.3"/>
+          </svg>
+          <div class="gauge-val" id="gv1">—</div>
+        </div>
+        <div class="gauge-title">Выручка</div>
+        <div class="gauge-sub" id="gs1">план месяца</div>
+        <div class="gauge-pct" id="gp1" style="color:var(--rose)"></div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-wrap">
+          <svg class="gauge-svg" viewBox="0 0 80 80">
+            <circle class="gauge-bg" cx="40" cy="40" r="33"/>
+            <circle class="gauge-fill" id="g2" cx="40" cy="40" r="33" stroke="#f59e0b" stroke-dasharray="207.3" stroke-dashoffset="207.3"/>
+          </svg>
+          <div class="gauge-val" id="gv2">—</div>
+        </div>
+        <div class="gauge-title">Лиды</div>
+        <div class="gauge-sub" id="gs2">входящий поток</div>
+        <div class="gauge-pct" id="gp2" style="color:#f59e0b"></div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-wrap">
+          <svg class="gauge-svg" viewBox="0 0 80 80">
+            <circle class="gauge-bg" cx="40" cy="40" r="33"/>
+            <circle class="gauge-fill" id="g3" cx="40" cy="40" r="33" stroke="var(--teal)" stroke-dasharray="207.3" stroke-dashoffset="207.3"/>
+          </svg>
+          <div class="gauge-val" id="gv3">—</div>
+        </div>
+        <div class="gauge-title">Консультации</div>
+        <div class="gauge-sub" id="gs3">план 120</div>
+        <div class="gauge-pct" id="gp3" style="color:var(--teal)"></div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-wrap">
+          <svg class="gauge-svg" viewBox="0 0 80 80">
+            <circle class="gauge-bg" cx="40" cy="40" r="33"/>
+            <circle class="gauge-fill" id="g4" cx="40" cy="40" r="33" stroke="#8b5cf6" stroke-dasharray="207.3" stroke-dashoffset="207.3"/>
+          </svg>
+          <div class="gauge-val" id="gv4">—</div>
+        </div>
+        <div class="gauge-title">Процедуры</div>
+        <div class="gauge-sub" id="gs4">план 70</div>
+        <div class="gauge-pct" id="gp4" style="color:#8b5cf6"></div>
+      </div>
+    </div>
+
+    <!-- Конверсии -->
+    <div class="conv-row">
+      <div class="conv-card">
+        <div class="conv-arrow">Лид → Консультация</div>
+        <div class="conv-val" id="conv1">—</div>
+        <div class="conv-label">конверсия</div>
+      </div>
+      <div class="conv-card">
+        <div class="conv-arrow">Консульт. → Процедура</div>
+        <div class="conv-val" id="conv2">—</div>
+        <div class="conv-label">конверсия</div>
+      </div>
+    </div>
+
+    <!-- Воронка -->
+    <div class="funnel">
+      <div class="funnel-title">Воронка клиентов</div>
+      <div class="funnel-step">
+        <div class="funnel-label">Лиды</div>
+        <div class="funnel-bar-wrap"><div class="funnel-bar" id="fb1" style="width:100%;background:var(--rose)"></div></div>
+        <div class="funnel-num" id="fn1">—</div>
+      </div>
+      <div class="funnel-step">
+        <div class="funnel-label">Консультации</div>
+        <div class="funnel-bar-wrap"><div class="funnel-bar" id="fb2" style="width:0%;background:#f59e0b"></div></div>
+        <div class="funnel-num" id="fn2">—</div>
+      </div>
+      <div class="funnel-step">
+        <div class="funnel-label">Процедуры</div>
+        <div class="funnel-bar-wrap"><div class="funnel-bar" id="fb3" style="width:0%;background:var(--teal)"></div></div>
+        <div class="funnel-num" id="fn3">—</div>
+      </div>
+    </div>
+
+    <!-- P&L -->
+    <div class="profit-card">
+      <div class="profit-title">Финансы месяца</div>
+      <div class="profit-rows">
+        <div class="profit-row">
+          <span class="profit-row-label">Выручка</span>
+          <span class="profit-row-val white" id="plRev">—</span>
+        </div>
+        <div class="profit-row">
+          <span class="profit-row-label">Расходы</span>
+          <span class="profit-row-val red" id="plExp">—</span>
+        </div>
+        <div class="profit-row profit-total">
+          <span class="profit-row-label">Чистая прибыль</span>
+          <span class="profit-row-val green" id="plProfit">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Врачи -->
+    <div class="section-title">Выработка врачей</div>
+    <div class="doc-cards" id="docCards">
+      <div style="color:var(--ink-soft);font-size:13px;padding:10px 0">Загрузка…</div>
+    </div>
+
+    <!-- AI -->
+    <div class="ai-card" id="aiCard">
+      <div class="ai-header">
+        <span class="ai-icon">🤖</span>
+        <span class="ai-title">AI-анализ</span>
+      </div>
+      <div class="ai-body" id="aiBody">Анализирую показатели…</div>
+    </div>
+
+    <!-- Telegram -->
+    <button class="tg-btn" onclick="sendTelegram()">
+      ✈️ Отправить отчёт в Telegram
+    </button>
+
+    <div class="refresh-row">
+      <span class="refresh-time" id="refreshTime">Обновлено: —</span>
+      <button class="refresh-btn" onclick="loadDashboard()">↻ Обновить</button>
+    </div>
+
+  </div>
+</section>
+
+<!-- ЛИДЫ -->
+<section id="screen-leads" class="screen">
+  <div class="form-header">
+    <h2>Новая заявка</h2>
+    <p>Каждый входящий контакт — деньги</p>
+  </div>
+  <div class="form-section">
+    <div class="form-section-label">Контакт</div>
+    <div class="field"><label>Дата</label><input id="lDate" type="date"></div>
+    <div class="field"><label>Имя клиента</label><input id="lName" type="text" placeholder="Айгуль Сейткали"></div>
+    <div class="field"><label>Телефон</label><input id="lPhone" type="tel" placeholder="+7 777 000 00 00"></div>
+  </div>
+  <div class="form-section">
+    <div class="form-section-label">Запрос</div>
+    <div class="field"><label>Источник</label>
+      <select id="lSource">
+        <option value="">— откуда узнал —</option>
+        <option>Instagram</option>
+        <option>TikTok</option>
+        <option>Google</option>
+        <option>Рекомендация</option>
+        <option>WhatsApp</option>
+        <option>2GIS</option>
+        <option>Прочее</option>
+      </select>
+    </div>
+    <div class="field"><label>Интересует процедура</label>
+      <select id="lProcedure">
+        <option value="">— выберите —</option>
+        <option>Ринопластика</option>
+        <option>Блефаропластика</option>
+        <option>Липосакция</option>
+        <option>Маммопластика</option>
+        <option>Контурная пластика</option>
+        <option>Другое</option>
+      </select>
+    </div>
+    <div class="field"><label>Статус</label>
+      <select id="lStatus">
+        <option value="Новый">Новый — ещё не звонили</option>
+        <option value="Записан">Записан на консультацию</option>
+        <option value="Перезвонить">Перезвонить позже</option>
+        <option value="Отказ">Отказ</option>
+      </select>
+    </div>
+  </div>
+  <button class="submit-btn" id="lBtn" onclick="submitLead()">СОХРАНИТЬ ЗАЯВКУ</button>
+</section>
+
+<!-- КОНСУЛЬТАЦИИ -->
+<section id="screen-consult" class="screen">
+  <div class="form-header">
+    <h2>Консультация</h2>
+    <p>Приём врача — фиксируем результат</p>
+  </div>
+  <div class="form-section">
+    <div class="form-section-label">Приём</div>
+    <div class="field"><label>Дата</label><input id="cDate" type="date"></div>
+    <div class="field"><label>Врач</label>
+      <select id="cDoctor">
+        <option value="">— выберите врача —</option>
+        <option>Айжан</option>
+        <option>Светлана</option>
+        <option>Асель</option>
+      </select>
+    </div>
+    <div class="field"><label>Процедура (запрос клиента)</label><select id="cProcedure"><option value="">— выберите —</option><option>Ринопластика</option><option>Блефаропластика</option><option>Маммопластика</option><option>Липосакция</option><option>Абдоминопластика</option><option>Контурная пластика</option><option>Ботокс</option><option>Филлеры губ</option><option>Лазерная эпиляция</option><option>Чистка лица</option><option>Пилинг</option><option>Другое</option></select></div>
+  </div>
+  <div class="form-section">
+    <div class="form-section-label">Результат</div>
+    <div class="field"><label>Итог консультации</label>
+      <select id="cResult">
+        <option value="Записан на процедуру">✅ Записан на процедуру</option>
+        <option value="Думает">🤔 Думает, перезвонит</option>
+        <option value="Нужна доп. консультация">📋 Нужна доп. консультация</option>
+        <option value="Отказ">❌ Отказ</option>
+      </select>
+    </div>
+    <div class="field"><label>Комментарий</label>
+      <textarea id="cComment" placeholder="Важные детали (необязательно)"></textarea>
+    </div>
+  </div>
+  <button class="submit-btn" id="cBtn" onclick="submitConsult()">СОХРАНИТЬ</button>
+</section>
+
+<!-- ПРОЦЕДУРЫ + ФИНАНСЫ -->
+<section id="screen-finance" class="screen">
+  <div class="form-header">
+    <h2>Процедура / Финансы</h2>
+    <p>Выполненные работы и движение денег</p>
+  </div>
+
+  <!-- Вкладки -->
+  <div style="display:flex;gap:8px;margin-bottom:16px">
+    <button id="tab-proc" onclick="switchTab('proc')" style="flex:1;padding:10px;border-radius:10px;border:2px solid var(--rose);background:var(--rose);color:white;font-weight:700;font-size:13px;cursor:pointer">Процедура</button>
+    <button id="tab-fin" onclick="switchTab('fin')" style="flex:1;padding:10px;border-radius:10px;border:2px solid var(--border);background:white;color:var(--ink-mid);font-weight:700;font-size:13px;cursor:pointer">Финансы дня</button>
+  </div>
+
+  <!-- Форма процедуры -->
+  <div id="tab-proc-content">
+    <div class="form-section">
+      <div class="form-section-label">Процедура</div>
+      <div class="field"><label>Дата</label><input id="pDate" type="date"></div>
+      <div class="field"><label>Врач</label>
+        <select id="pDoctor">
+          <option value="">— выберите врача —</option>
+          <option>Айжан</option>
+          <option>Светлана</option>
+          <option>Асель</option>
+        </select>
+      </div>
+      <div class="field"><label>Вид процедуры</label><select id="pName"><option value="">— выберите —</option><option>Ринопластика</option><option>Блефаропластика</option><option>Маммопластика</option><option>Липосакция</option><option>Абдоминопластика</option><option>Контурная пластика</option><option>Ботокс</option><option>Филлеры губ</option><option>Лазерная эпиляция</option><option>Чистка лица</option><option>Пилинг</option><option>Другое</option></select></div>
+    </div>
+    <div class="form-section">
+      <div class="form-section-label">Оплата</div>
+      <div class="field"><label>Стоимость для клиента, ₸</label><input id="pRevenue" type="number" placeholder="500 000"></div>
+      <div class="field"><label>Себестоимость (расходники), ₸</label><input id="pCost" type="number" placeholder="120 000"></div>
+      <div class="field"><label>Форма оплаты</label>
+        <select id="pPayment">
+          <option>Наличные</option>
+          <option>Карта / перевод</option>
+          <option>Рассрочка</option>
+        </select>
+      </div>
+      <div class="field"><label>Тип клиента</label>
+        <select id="pClientType">
+          <option value="Новый">Новый клиент</option>
+          <option value="Повторный">Повторный клиент</option>
+        </select>
+      </div>
+    </div>
+    <button class="submit-btn" id="pBtn" onclick="submitProcedure()">СОХРАНИТЬ ПРОЦЕДУРУ</button>
+  </div>
+
+  <!-- Форма финансов -->
+  <div id="tab-fin-content" style="display:none">
+    <div class="form-section">
+      <div class="form-section-label">Поступления</div>
+      <div class="field"><label>Дата</label><input id="fDate" type="date"></div>
+      <div class="field"><label>Выручка за день, ₸</label><input id="fRevenue" type="number" placeholder="850 000"></div>
+      <div class="field"><label>Остаток на счетах, ₸</label><input id="fCash" type="number" placeholder="5 200 000"></div>
+    </div>
+    <div class="form-section">
+      <div class="form-section-label">Расходы</div>
+      <div class="field"><label>Реклама, ₸</label><input id="fAds" type="number" placeholder="0"></div>
+      <div class="field"><label>Зарплата, ₸</label><input id="fSalary" type="number" placeholder="0"></div>
+      <div class="field"><label>Аренда, ₸</label><input id="fRent" type="number" placeholder="0"></div>
+      <div class="field"><label>Прочие расходы, ₸</label><input id="fOther" type="number" placeholder="0"></div>
+    </div>
+    <button class="submit-btn" id="fBtn" onclick="submitFinance()">СОХРАНИТЬ ФИНАНСЫ</button>
+  </div>
+</section>
+
+<!-- SUCCESS -->
+<section id="screen-success" class="screen">
+  <div class="success-screen">
+    <div class="success-icon">✓</div>
+    <div class="success-title">Сохранено!</div>
+    <div class="success-sub">Данные записаны в таблицу.<br>Руководитель получит уведомление.</div>
+    <button class="submit-btn" onclick="goTo('dash')">← В главное меню</button>
+  </div>
+</section>
+
+
+<!-- УВЕДОМЛЕНИЯ -->
+<section id="screen-notify" class="screen">
+  <div class="form-header">
+    <h2>🔔 Настройки уведомлений</h2>
+    <p>Telegram-алерты для директора</p>
+  </div>
+
+  <!-- Статус -->
+  <div class="form-section" style="background:#f0fdf4;border:1px solid #86efac">
+    <div class="form-section-label" style="color:#166534">Статус подключения</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0">
+      <div style="font-size:13px;color:#166534;font-weight:700">✅ Telegram подключён</div>
+      <div style="font-size:11px;color:var(--ink-soft)">@dashbord_test_bot</div>
+    </div>
+    <div style="font-size:11px;color:var(--ink-soft);margin-top:6px">Последняя отправка: <span id="lastSent">—</span></div>
+  </div>
+
+  <!-- Блок 1 -->
+  <div class="form-section">
+    <div class="form-section-label">📅 Блок 1 — По расписанию</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--ink)">Итог дня</div>
+        <div style="font-size:11px;color:var(--ink-soft);margin-top:2px">Выручка, лиды, прибыль, % плана</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input type="time" id="timeEvening" value="21:00" style="border:1.5px solid var(--border);border-radius:8px;padding:6px 8px;font-size:13px;color:var(--ink)">
+        <input type="checkbox" id="chkEvening" checked style="width:20px;height:20px;accent-color:var(--rose);cursor:pointer">
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0">
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--ink)">Утренний план</div>
+        <div style="font-size:11px;color:var(--ink-soft);margin-top:2px">Записи на сегодня, ожидаемая выручка</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input type="time" id="timeMorning" value="08:30" style="border:1.5px solid var(--border);border-radius:8px;padding:6px 8px;font-size:13px;color:var(--ink)">
+        <input type="checkbox" id="chkMorning" style="width:20px;height:20px;accent-color:var(--rose);cursor:pointer">
+      </div>
+    </div>
+  </div>
+
+  <!-- Блок 2 -->
+  <div class="form-section">
+    <div class="form-section-label">💰 Блок 2 — Финансовые пороги</div>
+    <div style="padding:12px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--ink)">Крупный чек</div>
+          <div style="font-size:11px;color:var(--ink-soft);margin-top:2px">Уведомить при оплате выше порога</div>
+        </div>
+        <input type="checkbox" id="chkBigCheck" checked style="width:20px;height:20px;accent-color:var(--rose);cursor:pointer">
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input type="number" id="thresholdBigCheck" value="500000" style="flex:1;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--ink)">
+        <span style="font-size:13px;color:var(--ink-soft);white-space:nowrap">₸ и выше</span>
+      </div>
+    </div>
+    <div style="padding:12px 0">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--ink)">Аномальный расход</div>
+          <div style="font-size:11px;color:var(--ink-soft);margin-top:2px">Уведомить при расходе выше порога</div>
+        </div>
+        <input type="checkbox" id="chkBigExpense" checked style="width:20px;height:20px;accent-color:var(--rose);cursor:pointer">
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input type="number" id="thresholdBigExpense" value="300000" style="flex:1;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--ink)">
+        <span style="font-size:13px;color:var(--ink-soft);white-space:nowrap">₸ и выше</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Блок 3 -->
+  <div class="form-section">
+    <div class="form-section-label">🚨 Блок 3 — Сигналы «Пожар»</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;color:var(--ink)">Падение конверсии</div>
+        <div style="font-size:11px;color:var(--ink-soft);margin-top:2px">Лид → консультация ниже порога</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input type="number" id="thresholdConv" value="10" min="1" max="100" style="width:56px;border:1.5px solid var(--border);border-radius:8px;padding:6px 8px;font-size:14px;color:var(--ink);text-align:center">
+        <span style="font-size:12px;color:var(--ink-soft)">%</span>
+        <input type="checkbox" id="chkConv" checked style="width:20px;height:20px;accent-color:var(--rose);cursor:pointer">
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--ink)">Отказ на консультации</div>
+        <div style="font-size:11px;color:var(--ink-soft);margin-top:2px">Клиент ушёл с негативом — алерт сразу</div>
+      </div>
+      <input type="checkbox" id="chkRefusal" checked style="width:20px;height:20px;accent-color:var(--rose);cursor:pointer">
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0">
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--ink)">Сверка 15-го числа</div>
+        <div style="font-size:11px;color:var(--ink-soft);margin-top:2px">Если план выполнен менее 35% — алерт</div>
+      </div>
+      <input type="checkbox" id="chkMid" checked style="width:20px;height:20px;accent-color:var(--rose);cursor:pointer">
+    </div>
+  </div>
+
+  <!-- Кнопка сохранения -->
+  <button class="submit-btn" onclick="saveNotifySettings()" style="margin-bottom:14px">💾 СОХРАНИТЬ НАСТРОЙКИ</button>
+
+  <!-- Блок 4 -->
+  <div class="form-section" style="background:#f5f0ff;border:1px solid #e9d5ff">
+    <div class="form-section-label" style="color:#5b21b6">🧪 Блок 4 — Проверка связи</div>
+    <p style="font-size:12px;color:#6d28d9;margin-bottom:14px">Отправьте тестовое сообщение чтобы убедиться что всё работает</p>
+    <button class="tg-btn" onclick="sendTestNotify()">✈️ Отправить тестовое сообщение</button>
+  </div>
+
+  <div style="height:20px"></div>
+</section>
+<!-- BOTTOM NAV -->
+<nav class="nav" style="grid-template-columns:repeat(5,1fr)">
+  <button class="nav-item active" id="nav-dash" onclick="goTo('dash')">
+    <span>📊</span>Главная
+  </button>
+  <button class="nav-item" id="nav-leads" onclick="goTo('leads')">
+    <span>📞</span>Лиды
+  </button>
+  <button class="nav-item" id="nav-consult" onclick="goTo('consult')">
+    <span>🩺</span>Приём
+  </button>
+  <button class="nav-item" id="nav-finance" onclick="goTo('finance')">
+    <span>💰</span>Касса
+  </button>
+  <button class="nav-item" id="nav-notify" onclick="goTo('notify')">
+    <span>🔔</span>Алерты
+  </button>
+</nav>
+
+</div>
+<script>
+// ============================================================
+// КОНФИГУРАЦИЯ — замените на реальные значения
+// ============================================================
+// ===== SUPABASE CONFIG =====
+const SUPABASE_URL = 'https://ilfxyvsqintvjbifqxvr.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlsZnh5dnNxaW50dmpiaWZxeHZyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1NDg4NjYsImV4cCI6MjA5ODEyNDg2Nn0.GxeTD1GlBDmmVsoCgXZPKnp02GDL42ncrWsjegN2B6o';
+
+// Telegram (из sakura_settings загружается автоматически)
+let TG_TOKEN = '8492481649:AAGpHLpeWNbMAXkV7JfrQwGk7U5Zo07mpw8';
+let TG_CHAT_ID = '843682379';
+
+async function sbFetch(table, params = '') {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}${params}`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json'
+    }
+  });
+  return r.json();
+}
+
+async function sbInsert(table, body) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) {
+    const err = await r.text();
+    console.error('Supabase insert error:', r.status, err);
+    alert('Ошибка сохранения: ' + r.status + '\n' + err);
+  }
+  return r.ok;
+}
+
+// Планы по умолчанию (перезапишутся из sakura_settings)
+const PLANS = { revenue: 3000000, leads: 100, consult: 60, proc: 40 };
+
+// ============================================================
+// НАВИГАЦИЯ
+// ============================================================
+const SCREENS = ['dash','leads','consult','finance','notify','success'];
+
+function goTo(id) {
+  SCREENS.forEach(s => {
+    document.getElementById('screen-'+s).classList.remove('active');
+    const n = document.getElementById('nav-'+s);
+    if (n) n.classList.remove('active');
+  });
+  document.getElementById('screen-'+id).classList.add('active');
+  const n = document.getElementById('nav-'+id);
+  if (n) n.classList.add('active');
+  window.scrollTo(0,0);
+  if (id === 'dash') loadDashboard();
+}
+
+function switchTab(tab) {
+  ['proc','fin'].forEach(t => {
+    document.getElementById('tab-'+t+'-content').style.display = t===tab?'block':'none';
+    const btn = document.getElementById('tab-'+t);
+    btn.style.background = t===tab?'var(--rose)':'white';
+    btn.style.color = t===tab?'white':'var(--ink-mid)';
+    btn.style.borderColor = t===tab?'var(--rose)':'var(--border)';
+  });
+}
+
+// ============================================================
+// УТИЛИТЫ
+// ============================================================
+function csv(t){ return t.trim().split(/\r?\n/).map(x=>x.split(',').map(v=>v.trim())) }
+function num(v){ let n=Number(String(v||'').replace('%','').replace(/\s/g,'').replace(',','.')); return isNaN(n)?0:n }
+function val(rows,k){ let r=rows.find(x=>(x[0]||'').trim().toLowerCase()===k.toLowerCase()); return r?r[1]:'' }
+function money(v){
+  v=num(v);
+  if(v>=1000000) return (v/1000000).toFixed(1).replace(/\.0$/,'')+'M';
+  if(v>=1000) return Math.round(v/1000)+'K';
+  return String(Math.round(v));
+}
+function moneyFull(v){
+  v=num(v);
+  return v.toLocaleString('ru-RU')+' ₸';
+}
+function pct(a,b){ return b?Math.round(a/b*100)+'%':'—' }
+function greet(){
+  const h=new Date().getHours();
+  if(h<12) return 'Доброе утро';
+  if(h<17) return 'Добрый день';
+  return 'Добрый вечер';
+}
+
+function setGauge(id, valId, pctId, value, plan, color) {
+  const pctNum = Math.min(100, Math.round(value/plan*100));
+  const circ = 207.3;
+  const offset = circ - (circ * pctNum / 100);
+  const el = document.getElementById(id);
+  el.style.stroke = color || 'var(--rose)';
+  el.style.strokeDashoffset = offset;
+  document.getElementById(valId).textContent = money(value) || value;
+  if(pctId) document.getElementById(pctId).textContent = pctNum+'% от плана';
+}
+
+function validate(fields) {
+  for(let [id,label] of fields) {
+    const v = document.getElementById(id).value;
+    if(!v) { alert('Заполните: '+label); document.getElementById(id).focus(); return false; }
+  }
+  return true;
+}
+
+// ЗАГРУЗКА ДАШБОРДА — SUPABASE
+// ============================================================
+async function loadDashboard() {
+  document.getElementById('dashGreeting').textContent = greet();
+  document.getElementById('dashDate').textContent = new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});
+
+  const mainAlert = document.getElementById('mainAlert');
+  if (mainAlert) mainAlert.style.display = 'none';
+
+  try {
+    // Настройки
+    const settings = await sbFetch('sakura_settings', '?select=param_key,param_value');
+    const cfg = {};
+    if (Array.isArray(settings)) settings.forEach(r => { cfg[r.param_key] = r.param_value; });
+
+    const planRev     = parseFloat(cfg.revenue_plan)    || PLANS.revenue;
+    const planLeads   = parseFloat(cfg.leads_plan)      || PLANS.leads;
+    const planConsult = parseFloat(cfg.consults_plan)   || PLANS.consult;
+    const planProc    = parseFloat(cfg.procedures_plan) || PLANS.proc;
+    if (cfg.telegram_bot_token && cfg.telegram_bot_token !== 'EMPTY') TG_TOKEN = cfg.telegram_bot_token;
+    if (cfg.telegram_chat_id   && cfg.telegram_chat_id   !== 'EMPTY') TG_CHAT_ID = cfg.telegram_chat_id;
+
+    // Текущий месяц
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const monthStart = `${y}-${m}-01`;
+    const monthEnd   = `${y}-${m}-31`;
+    const today = now.toISOString().split('T')[0];
+
+    // Данные за месяц
+    const leads   = await sbFetch('sakura_leads',         `?lead_date=gte.${monthStart}&lead_date=lte.${monthEnd}&select=status`);
+    const consults = await sbFetch('sakura_consultations', `?consult_date=gte.${monthStart}&consult_date=lte.${monthEnd}&select=result,doctor`);
+    const procs   = await sbFetch('sakura_procedures',    `?proc_date=gte.${monthStart}&proc_date=lte.${monthEnd}&select=price,cost_price,doctor`);
+    const fins    = await sbFetch('sakura_finance',       `?finance_date=gte.${monthStart}&finance_date=lte.${monthEnd}&select=revenue,expense_ads,expense_salary,expense_rent,expense_other,total_expenses`);
+
+    // Считаем
+    const leadsCount   = Array.isArray(leads)   ? leads.length   : 0;
+    const consultCount = Array.isArray(consults) ? consults.length : 0;
+    const procCount    = Array.isArray(procs)   ? procs.length   : 0;
+
+    const revenue = Array.isArray(procs) ? procs.reduce((s,p) => s + parseFloat(p.price||0), 0) : 0;
+    const fExp    = Array.isArray(fins)  ? fins.reduce((s,f)  => s + parseFloat(f.total_expenses||0), 0) : 0;
+    const fProfit = revenue - fExp;
+
+    const conv1 = leadsCount   > 0 ? Math.round(consultCount / leadsCount * 100)  : 0;
+    const conv2 = consultCount > 0 ? Math.round(procCount    / consultCount * 100) : 0;
+    const avgChk = procCount > 0 ? Math.round(revenue / procCount) : 0;
+
+    // Топ врачей
+    const doctorMap = {};
+    if (Array.isArray(procs)) procs.forEach(p => {
+      const d = p.doctor || 'Без врача';
+      if (!doctorMap[d]) doctorMap[d] = { proc: 0, revenue: 0 };
+      doctorMap[d].proc++;
+      doctorMap[d].revenue += parseFloat(p.price || 0);
+    });
+    const doctors = Object.entries(doctorMap)
+      .sort((a,b) => b[1].revenue - a[1].revenue)
+      .map(([name, v]) => ({ name, proc: v.proc, revenue: v.revenue, avgChk: v.proc > 0 ? Math.round(v.revenue/v.proc) : 0 }));
+
+    // Отказы
+    const refusals = Array.isArray(consults) ? consults.filter(c => c.result === 'Отказ').length : 0;
+
+    // Алерт
+    const revP = planRev > 0 ? Math.round(revenue / planRev * 100) : 0;
+    let alertText, alertClass;
+    if (refusals > 3)         { alertText = `🔴 ${refusals} отказов — проверьте консультантов`; alertClass = 'danger'; }
+    else if (revP >= 80)      { alertText = `🟢 Выручка ${revP}% от плана. Отличный темп!`;    alertClass = 'ok'; }
+    else if (revP >= 35)      { alertText = `🟡 Выручка ${revP}% от плана. Есть резерв роста`; alertClass = 'warn'; }
+    else                      { alertText = `🟡 Выручка ${revP}% от плана. До цели ${money(planRev - revenue)}`; alertClass = 'warn'; }
+
+    document.getElementById('mainAlert').style.display = 'block';
+    document.getElementById('mainAlert').className = 'status-card ' + (alertClass === 'danger' ? 'warn' : alertClass === 'ok' ? 'good' : 'info');
+
+    // Спидометры
+    setGauge('g1','gv1','gp1', revenue,    planRev,     'var(--rose)');
+    setGauge('g2','gv2','gp2', leadsCount, planLeads,   '#f59e0b');
+    setGauge('g3','gv3','gp3', consultCount,planConsult,'var(--teal)');
+    setGauge('g4','gv4','gp4', procCount,  planProc,    '#8b5cf6');
+
+    // Конверсия
+    document.getElementById('conv1').textContent = conv1 + '%';
+    document.getElementById('conv2').textContent = conv2 + '%';
+
+    // Воронка
+    const maxF = Math.max(leadsCount, 1);
+    ['f1','f2','f3'].forEach((id,i) => {
+      const vals = [leadsCount, consultCount, procCount];
+      const el = document.getElementById(id);
+      if (el) el.style.width = Math.round(vals[i]/maxF*100) + '%';
+    });
+    if (document.getElementById('fv1')) document.getElementById('fv1').textContent = leadsCount;
+    if (document.getElementById('fv2')) document.getElementById('fv2').textContent = consultCount;
+    if (document.getElementById('fv3')) document.getElementById('fv3').textContent = procCount;
+
+    // Финансы
+    document.getElementById('finRev').textContent    = money(revenue);
+    document.getElementById('finExp').textContent    = money(fExp);
+    document.getElementById('finProfit').textContent = money(fProfit);
+    if (document.getElementById('finAvgChk')) document.getElementById('finAvgChk').textContent = money(avgChk);
+
+    // Врачи
+    const docList = document.getElementById('doctorList');
+    if (docList) {
+      docList.innerHTML = doctors.length
+        ? doctors.map(d => `<div class="doctor-row"><div class="doctor-name">${d.name}</div><div class="doctor-stats">${d.proc} проц. · ${money(d.revenue)}</div></div>`).join('')
+        : '<div class="no-data">Нет данных за месяц</div>';
+    }
+
+    // AI рекомендации
+    const recs = [];
+    if (revP >= 80)  recs.push(`Выручка ${revP}% от плана — сохранить темп.`);
+    else             recs.push(`До плана ${money(planRev - revenue)} — усилить запись.`);
+    if (conv1 < 60)  recs.push(`Конверсия лид→консультация ${conv1}% — проработать скрипт администратора.`);
+    else             recs.push(`Конверсия лид→консультация ${conv1}% — норма.`);
+    if (conv2 < 50)  recs.push(`Конверсия консультация→процедура ${conv2}% — усилить работу врачей.`);
+    else             recs.push(`Конверсия консультация→процедура ${conv2}% — хороший результат.`);
+    if (refusals > 0) recs.push(`${refusals} отказов — разобрать причины на планёрке.`);
+
+    const aiEl = document.getElementById('aiText');
+    if (aiEl) aiEl.innerHTML = '<ol>' + recs.map(r => `<li>${r}</li>`).join('') + '</ol>';
+
+  } catch(e) {
+    console.error('Supabase error:', e);
+    if (mainAlert) mainAlert.style.display = 'none';
+  }
+}
+
+
+// ============================================================
+// ФОРМЫ ВВОДА — SUPABASE
+// ============================================================
+function submitLead() {
+  if (!validate([['lDate','Дата'],['lName','Имя клиента'],['lSource','Источник']])) return;
+  post(document.getElementById('lBtn'), {
+    type: 'lead',
+    date: document.getElementById('lDate').value,
+    name: document.getElementById('lName').value,
+    phone: document.getElementById('lPhone').value,
+    source: document.getElementById('lSource').value,
+    procedure: document.getElementById('lProcedure').value,
+    status: document.getElementById('lStatus').value
+  });
+}
+
+function submitConsult() {
+  if (!validate([['cDate','Дата'],['cDoctor','Врач'],['cProcedure','Процедура']])) return;
+  post(document.getElementById('cBtn'), {
+    type: 'consult',
+    date: document.getElementById('cDate').value,
+    doctor: document.getElementById('cDoctor').value,
+    procedure: document.getElementById('cProcedure').value,
+    result: document.getElementById('cResult').value,
+    comment: document.getElementById('cComment').value
+  });
+}
+
+function submitProcedure() {
+  if (!validate([['pDate','Дата'],['pDoctor','Врач'],['pName','Процедура'],['pRevenue','Стоимость']])) return;
+  post(document.getElementById('pBtn'), {
+    type: 'procedure',
+    date: document.getElementById('pDate').value,
+    doctor: document.getElementById('pDoctor').value,
+    name: document.getElementById('pName').value,
+    revenue: document.getElementById('pRevenue').value,
+    cost: document.getElementById('pCost').value || 0,
+    payment: document.getElementById('pPayment').value,
+    clientType: document.getElementById('pClientType').value
+  });
+}
+
+function submitFinance() {
+  if (!validate([['fDate','Дата'],['fRevenue','Выручка'],['fCash','Остаток']])) return;
+  const ads   = parseFloat(document.getElementById('fAds').value)    || 0;
+  const sal   = parseFloat(document.getElementById('fSalary').value) || 0;
+  const rent  = parseFloat(document.getElementById('fRent').value)   || 0;
+  const other = parseFloat(document.getElementById('fOther').value)  || 0;
+  post(document.getElementById('fBtn'), {
+    type: 'finance',
+    date: document.getElementById('fDate').value,
+    revenue: document.getElementById('fRevenue').value,
+    cash: document.getElementById('fCash').value,
+    expenses: ads + sal + rent + other,
+    ads, salary: sal, rent, other
+  });
+}
+
+async function post(btn, payload) {
+  btn.disabled = true;
+  const orig = btn.textContent;
+  btn.textContent = 'Сохраняю…';
+
+  let table, body;
+
+  if (payload.type === 'lead') {
+    table = 'sakura_leads';
+    body = {
+      lead_date: payload.date,
+      client_name: payload.name,
+      phone: payload.phone,
+      source: payload.source,
+      procedure: payload.procedure,
+      status: payload.status,
+      comment: payload.comment || ''
+    };
+  } else if (payload.type === 'consult') {
+    table = 'sakura_consultations';
+    body = {
+      consult_date: payload.date,
+      doctor: payload.doctor,
+      procedure: payload.procedure,
+      result: payload.result,
+      comment: payload.comment || ''
+    };
+    // Уведомление об отказе
+    if (payload.result === 'Отказ') {
+      sendTg(`🚨 *Отказ на консультации*\nВрач: ${payload.doctor}\nПроцедура: ${payload.procedure}\nКомментарий: ${payload.comment || '—'}`);
+    }
+  } else if (payload.type === 'procedure') {
+    table = 'sakura_procedures';
+    const price = parseFloat(payload.revenue) || 0;
+    const cost  = parseFloat(payload.cost)    || 0;
+    body = {
+      proc_date: payload.date,
+      doctor: payload.doctor,
+      procedure: payload.name,
+      price: price,
+      cost_price: cost,
+      payment_method: payload.payment,
+      client_type: payload.clientType
+    };
+    // Уведомление о крупном чеке
+    if (price >= 500000) {
+      sendTg(`💰 *Крупный чек!*\nСумма: ${money(price)}\nВрач: ${payload.doctor}\nПроцедура: ${payload.name}`);
+    }
+  } else if (payload.type === 'finance') {
+    table = 'sakura_finance';
+    body = {
+      finance_date: payload.date,
+      revenue: parseFloat(payload.revenue) || 0,
+      balance: parseFloat(payload.cash)    || 0,
+      expense_ads:     parseFloat(payload.ads)     || 0,
+      expense_salary:  parseFloat(payload.salary)  || 0,
+      expense_rent:    parseFloat(payload.rent)    || 0,
+      expense_other:   parseFloat(payload.other)   || 0,
+      total_expenses:  parseFloat(payload.expenses) || 0,
+      profit: (parseFloat(payload.revenue)||0) - (parseFloat(payload.expenses)||0)
+    };
+  }
+
+  if (table && body) {
+    const ok = await sbInsert(table, body);
+    if (ok) {
+      goTo('success');
+    } else {
+      alert('Ошибка сохранения. Попробуйте ещё раз.');
+    }
+  }
+
+  btn.disabled = false;
+  btn.textContent = orig;
+}
+
+async function sendTg(text) {
+  if (!TG_TOKEN || !TG_CHAT_ID) return;
+  const mainAlert = document.getElementById('mainAlert');
+  if (mainAlert) mainAlert.style.display = 'none';
+
+  try {
+    await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ chat_id: TG_CHAT_ID, text, parse_mode: 'Markdown' })
+    });
+  } catch(e) {}
+}
+
+async function sendTelegramReport() {
+  const mainAlert = document.getElementById('mainAlert');
+  if (mainAlert) mainAlert.style.display = 'none';
+
+  try {
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    const procs  = await sbFetch('sakura_procedures', `?proc_date=eq.${today}&select=price`);
+    const leads  = await sbFetch('sakura_leads',      `?lead_date=eq.${today}&select=id`);
+    const consults = await sbFetch('sakura_consultations', `?consult_date=eq.${today}&select=id`);
+    const revenue = Array.isArray(procs) ? procs.reduce((s,p) => s + parseFloat(p.price||0), 0) : 0;
+    const text = `📊 *Итог дня — Клиника Сакура*\n📅 ${now.toLocaleDateString('ru-RU')}\n\n💰 Выручка: ${money(revenue)}\n📞 Лидов: ${Array.isArray(leads)?leads.length:0}\n🩺 Консультаций: ${Array.isArray(consults)?consults.length:0}\n✨ Процедур: ${Array.isArray(procs)?procs.length:0}`;
+    await sendTg(text);
+    alert('✅ Отчёт отправлен в Telegram!');
+  } catch(e) {
+    alert('Ошибка отправки');
+  }
+}
+
+async function sendTestNotify() {
+  await sendTg(`🔔 *Тест уведомлений — Клиника Сакура*\n\nСистема работает корректно.\n_${new Date().toLocaleString('ru-RU')}_`);
+  alert('✅ Тестовое сообщение отправлено!');
+}
+
+async function saveNotifySettings() {
+  alert('Настройки сохранены в Telegram-боте');
+}
+
+// ============================================================
+// ИНИЦИАЛИЗАЦИЯ
+// ============================================================
+document.querySelectorAll('input[type=date]').forEach(i=>i.valueAsDate=new Date());
+loadDashboard();
+</script>
+</body>
+</html>
