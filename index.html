@@ -494,7 +494,7 @@ body{background:linear-gradient(180deg,#eef3f8 0%,#f8fbff 100%)}
   <div class="form-body">
     <div class="form-section"><div class="form-section-label">Приём</div>
       <div class="field"><label>Дата</label><input id="cDate" type="date"></div>
-      <div class="field"><label>Врач</label><select id="cDoctor"><option value="">— выберите врача —</option><option>Айжан</option><option>Светлана</option><option>Асель</option></select></div>
+      <div class="field"><label>Врач</label><select id="cDoctor"><option value="">— выберите врача —</option></select></div>
       <div class="field"><label>Процедура (запрос клиента)</label><select id="cProcedure"><option value="">— выберите —</option><option>Ринопластика</option><option>Блефаропластика</option><option>Маммопластика</option><option>Липосакция</option><option>Абдоминопластика</option><option>Контурная пластика</option><option>Ботокс</option><option>Филлеры губ</option><option>Лазерная эпиляция</option><option>Чистка лица</option><option>Пилинг</option><option>Другое</option></select></div>
     </div>
     <div class="form-section"><div class="form-section-label">Результат</div>
@@ -522,7 +522,7 @@ body{background:linear-gradient(180deg,#eef3f8 0%,#f8fbff 100%)}
     <div id="tab-proc-content">
       <div class="form-section"><div class="form-section-label">Процедура</div>
         <div class="field"><label>Дата</label><input id="pDate" type="date"></div>
-        <div class="field"><label>Врач</label><select id="pDoctor"><option value="">— выберите врача —</option><option>Айжан</option><option>Светлана</option><option>Асель</option></select></div>
+        <div class="field"><label>Врач</label><select id="pDoctor"><option value="">— выберите врача —</option></select></div>
         <div class="field"><label>Вид процедуры</label><select id="pName"><option value="">— выберите —</option><option>Ринопластика</option><option>Блефаропластика</option><option>Маммопластика</option><option>Липосакция</option><option>Абдоминопластика</option><option>Контурная пластика</option><option>Ботокс</option><option>Филлеры губ</option><option>Лазерная эпиляция</option><option>Чистка лица</option><option>Пилинг</option><option>Другое</option></select></div>
       </div>
       <div class="form-section"><div class="form-section-label">Оплата</div>
@@ -681,6 +681,35 @@ async function saveNotifySettings(){const s=[{param_key:'alert_evening_time',par
 
 const today=new Date().toISOString().split('T')[0];
 document.querySelectorAll('input[type=date]').forEach(i=>i.value=today);
+
+/* ========== ЗАГРУЗКА ВРАЧЕЙ ИЗ SUPABASE ========== */
+async function loadDoctorsToSelect() {
+  try {
+    const url = 'https://ilfxyvsqintvjbifqxvr.supabase.co/rest/v1/sakura_doctors?select=*&is_active=eq.true&order=full_name';
+    const response = await fetch(url, {
+      headers: {
+        'apikey': 'sb_publishable_GEl1zhHAxT_i8zU2F86cOA_-G6n7uBH'
+      }
+    });
+    const doctors = await response.json();
+    
+    if (Array.isArray(doctors) && doctors.length > 0) {
+      const options = doctors.map(d => `<option value="${d.full_name}">${d.full_name}</option>`).join('');
+      const selectsToUpdate = ['cDoctor', 'pDoctor'];
+      selectsToUpdate.forEach(id => {
+        const select = document.getElementById(id);
+        if (select) {
+          select.innerHTML = '<option value="">— выберите врача —</option>' + options;
+        }
+      });
+    }
+  } catch (error) {
+    console.log('Ошибка загрузки врачей:', error);
+  }
+}
+
+// Запускаем загрузку при открытии страницы
+document.addEventListener('DOMContentLoaded', loadDoctorsToSelect);
 </script>
 </body>
 </html>
