@@ -592,6 +592,17 @@ body{background:linear-gradient(180deg,#eef3f8 0%,#f8fbff 100%)}
   </div>
 </section>
 
+<div id="loginOverlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:999;background:linear-gradient(135deg,#1e2d73,#3044a6);align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:18px;padding:28px 22px;width:88%;max-width:340px;text-align:center;box-shadow:0 18px 55px rgba(0,0,0,.25)">
+    <div style="font-size:34px">🔐</div>
+    <div style="font-size:20px;font-weight:800;color:#0b1536;margin-top:8px">Код доступа</div>
+    <div style="font-size:14px;color:#46546d;margin-top:4px">Введите ваш личный код</div>
+    <input type="password" id="loginCode" inputmode="numeric" autocomplete="off" style="width:100%;margin-top:16px;padding:14px;font-size:22px;text-align:center;letter-spacing:6px;border:2px solid #c6cfe0;border-radius:12px;box-sizing:border-box" onkeydown="if(event.key==='Enter')tryLogin()">
+    <div id="loginErr" style="display:none;color:#c62828;font-size:14px;margin-top:10px;font-weight:600">Неверный код. Попробуйте ещё раз.</div>
+    <button onclick="tryLogin()" style="width:100%;margin-top:16px;padding:14px;font-size:17px;font-weight:800;color:#fff;background:linear-gradient(135deg,#263f9c,#4f63d8);border:none;border-radius:12px;cursor:pointer">Войти</button>
+  </div>
+</div>
+
 <nav class="nav" id="mainNav" style="display:none">
   <button class="nav-item active" id="nav-dash" onclick="goTo('dash')"><span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>Главная</button>
   <button class="nav-item" id="nav-leads" onclick="goTo('leads')"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6.13 6.13l1.14-1.14a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>Лиды</button>
@@ -611,7 +622,37 @@ const PLANS={revenue:3000000,leads:100,consult:60,proc:40};
 
 function startPage(){document.getElementById('mainHeader').style.display='none';document.getElementById('mainNav').style.display='none';goTo('splash');}
 async function loadSettings(){try{const settings=await sbFetch('sakura_settings','?select=param_key,param_value');const cfg={};if(Array.isArray(settings))settings.forEach(r=>{cfg[r.param_key]=r.param_value;});window._cfg=cfg;if(cfg.telegram_bot_token&&cfg.telegram_bot_token!=='EMPTY')TG_TOKEN=cfg.telegram_bot_token;if(cfg.telegram_chat_id&&cfg.telegram_chat_id!=='EMPTY')TG_CHAT_ID=cfg.telegram_chat_id;const el=document.getElementById('thresholdBigCheck');if(el&&cfg.threshold_big_check)el.value=cfg.threshold_big_check;}catch(e){console.warn('loadSettings error',e);}}
-function openDash(){loadSettings();document.getElementById('mainHeader').style.display='block';document.getElementById('mainNav').style.display='grid';goTo('dash');}
+/* ===== ДОСТУП ПО РОЛЯМ =====
+   Коды можно поменять здесь: */
+const OWNER_CODE='1949';   // код владельца — видит всё, включая Настройки
+const ADMIN_CODE='2025';   // код администратора — без Настроек
+
+function openDash(){
+  if(!sessionStorage.getItem('smb_role')){showLogin();return;}
+  applyRole();
+  loadSettings();document.getElementById('mainHeader').style.display='block';document.getElementById('mainNav').style.display='grid';goTo('dash');}
+
+function showLogin(){
+  var ov=document.getElementById('loginOverlay');
+  ov.style.display='flex';
+  document.getElementById('loginCode').value='';
+  document.getElementById('loginErr').style.display='none';
+  setTimeout(function(){document.getElementById('loginCode').focus();},150);}
+
+function tryLogin(){
+  var c=document.getElementById('loginCode').value.trim();
+  if(c===OWNER_CODE){sessionStorage.setItem('smb_role','owner');}
+  else if(c===ADMIN_CODE){sessionStorage.setItem('smb_role','admin');}
+  else{document.getElementById('loginErr').style.display='block';return;}
+  document.getElementById('loginOverlay').style.display='none';
+  openDash();}
+
+function applyRole(){
+  var r=sessionStorage.getItem('smb_role');
+  var s=document.getElementById('nav-settings');
+  var nav=document.getElementById('mainNav');
+  if(r==='owner'){if(s)s.style.display='';nav.style.gridTemplateColumns='';}
+  else{if(s)s.style.display='none';nav.style.gridTemplateColumns='repeat(5,1fr)';}}
 
 async function sbFetch(t,p=''){try{const r=await fetch(`${SUPABASE_URL}/rest/v1/${t}${p}`,{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});if(!r.ok){console.warn('sbFetch error',r.status,t);return [];}const d=await r.json();return Array.isArray(d)?d:[];}catch(e){console.warn('sbFetch exception',e);return [];}}
 async function sbInsert(t,b){const r=await fetch(`${SUPABASE_URL}/rest/v1/${t}`,{method:'POST',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(b)});if(!r.ok){const e=await r.text();alert('Ошибка: '+r.status+'\n'+e);}return r.ok;}
