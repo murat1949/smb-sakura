@@ -165,6 +165,21 @@
 /* ============================================================
    ПОДКЛЮЧЕНИЕ К БАЗЕ — уже настроено, ничего менять не нужно
    ============================================================ */
+/* ===== ДОСТУП ТОЛЬКО ДЛЯ ВЛАДЕЛЬЦА =====
+   Код владельца — тот же, что в дашборде. Поменять можно здесь: */
+var OWNER_CODE = "1949";
+
+(function checkAccess() {
+  if (sessionStorage.getItem("smb_role") === "owner") return;
+  var c = prompt("Настройки доступны только владельцу.\nВведите код владельца:");
+  if (c !== null && c.trim() === OWNER_CODE) {
+    sessionStorage.setItem("smb_role", "owner");
+  } else {
+    alert("Доступ закрыт. Возвращаю на главную.");
+    window.location.href = "index.html";
+  }
+})();
+
 var SUPABASE_URL = "https://ilfxyvsqintvjbifqxvr.supabase.co";
 var SUPABASE_KEY = "sb_publishable_GEl1zhHAxT_i8zU2F86cOA_-G6n7uBH";
 
