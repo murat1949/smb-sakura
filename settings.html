@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Настройки — Клиника Сакура</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #FAF7F8;
+    color: #2B2B2B;
+    font-size: 18px;
+    padding-bottom: 60px;
+  }
+
+  /* ---------- Шапка ---------- */
+  .header {
+    background: linear-gradient(135deg, #C2185B, #E91E63);
+    color: #FFFFFF;
+    padding: 22px 16px 18px 16px;
+    text-align: center;
+  }
+  .header h1 {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .header p {
+    font-size: 15px;
+    opacity: 0.9;
+    margin-top: 4px;
+  }
+
+  /* ---------- Статус связи ---------- */
+  .conn-status {
+    text-align: center;
+    font-size: 15px;
+    padding: 8px 12px;
+  }
+  .conn-ok    { color: #1B7E3C; }
+  .conn-error { color: #C62828; }
+
+  /* ---------- Вкладки ---------- */
+  .tabs {
+    display: flex;
+    max-width: 640px;
+    margin: 14px auto 0 auto;
+    padding: 0 12px;
+    gap: 10px;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 16px 8px;
+    font-size: 19px;
+    font-weight: 600;
+    background: #FFFFFF;
+    color: #7A7A7A;
+    border: 2px solid #E4DDE0;
+    border-radius: 12px;
+    cursor: pointer;
+  }
+  .tab-btn.active {
+    background: #E91E63;
+    color: #FFFFFF;
+    border-color: #E91E63;
+  }
+
+  /* ---------- Секции ---------- */
+  .section {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 16px 12px;
+    display: none;
+  }
+  .section.active { display: block; }
+
+  .block-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 18px 4px 10px 4px;
+    color: #C2185B;
+  }
+
+  /* ---------- Карточка формы ---------- */
+  .card {
+    background: #FFFFFF;
+    border: 2px solid #E4DDE0;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+
+  label {
+    display: block;
+    font-size: 16px;
+    color: #555555;
+    margin: 12px 2px 6px 2px;
+  }
+  label:first-child { margin-top: 0; }
+
+  input[type="text"],
+  input[type="number"] {
+    width: 100%;
+    padding: 14px 12px;
+    font-size: 19px;
+    color: #2B2B2B;
+    background: #FFFFFF;
+    border: 2px solid #C9BFC4;
+    border-radius: 10px;
+  }
+  input:focus {
+    outline: none;
+    border-color: #E91E63;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 14px 20px;
+    font-size: 18px;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 14px;
+  }
+  .btn-add    { background: #E91E63; color: #FFFFFF; width: 100%; }
+  .btn-save   { background: #1B7E3C; color: #FFFFFF; }
+  .btn-cancel { background: #ECECEC; color: #444444; margin-left: 8px; }
+  .btn-edit   { background: #FFF0F5; color: #C2185B; border: 2px solid #E91E63; padding: 10px 16px; font-size: 16px; }
+  .btn-toggle { background: #ECECEC; color: #444444; padding: 10px 16px; font-size: 16px; margin-left: 8px; }
+
+  /* ---------- Список записей ---------- */
+  .item {
+    background: #FFFFFF;
+    border: 2px solid #E4DDE0;
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+  .item.inactive { opacity: 0.55; }
+
+  .item-name {
+    font-size: 19px;
+    font-weight: 600;
+  }
+  .item-sub {
+    font-size: 16px;
+    color: #777777;
+    margin-top: 3px;
+  }
+  .item-price {
+    font-size: 18px;
+    color: #C2185B;
+    font-weight: 600;
+    margin-top: 3px;
+  }
+  .item-badge {
+    display: inline-block;
+    font-size: 13px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-top: 6px;
+  }
+  .badge-on  { background: #E3F4E8; color: #1B7E3C; }
+  .badge-off { background: #F4E3E3; color: #C62828; }
+
+  .item-actions { margin-top: 10px; }
+
+  /* ---------- Сообщения ---------- */
+  .msg {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 12px;
+  }
+  .msg-inner {
+    padding: 14px;
+    border-radius: 10px;
+    font-size: 17px;
+    margin-top: 10px;
+    display: none;
+  }
+  .msg-ok    { background: #E3F4E8; color: #1B7E3C; }
+  .msg-error { background: #F9E2E2; color: #C62828; }
+
+  .loading {
+    text-align: center;
+    color: #999999;
+    padding: 20px;
+    font-size: 17px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🌸 Настройки клиники</h1>
+  <p>Справочники: врачи и услуги</p>
+</div>
+
+<div class="conn-status" id="connStatus">Проверяю связь с базой…</div>
+
+<div class="msg"><div class="msg-inner" id="msgBox"></div></div>
+
+<div class="tabs">
+  <button class="tab-btn active" id="tabDoctors" onclick="showTab('doctors')">👩‍⚕️ Врачи</button>
+  <button class="tab-btn" id="tabServices" onclick="showTab('services')">💆 Услуги</button>
+</div>
+
+<!-- ================= ВРАЧИ ================= -->
+<div class="section active" id="sectionDoctors">
+
+  <div class="block-title">Добавить врача</div>
+  <div class="card">
+    <label for="docName">ФИО врача</label>
+    <input type="text" id="docName" placeholder="Например: Ахметова Айгуль Сериковна">
+
+    <label for="docSpec">Специальность</label>
+    <input type="text" id="docSpec" placeholder="Например: Косметолог">
+
+    <button class="btn btn-add" onclick="addDoctor()">➕ Добавить врача</button>
+  </div>
+
+  <div class="block-title">Список врачей</div>
+  <div id="doctorsList"><div class="loading">Загружаю…</div></div>
+</div>
+
+<!-- ================= УСЛУГИ ================= -->
+<div class="section" id="sectionServices">
+
+  <div class="block-title">Добавить услугу</div>
+  <div class="card">
+    <label for="srvName">Название услуги</label>
+    <input type="text" id="srvName" placeholder="Например: Чистка лица ультразвуковая">
+
+    <label for="srvPrice">Цена, ₸ (только цифры)</label>
+    <input type="number" id="srvPrice" placeholder="Например: 15000">
+
+    <label for="srvCat">Категория</label>
+    <input type="text" id="srvCat" placeholder="Например: Косметология">
+
+    <button class="btn btn-add" onclick="addService()">➕ Добавить услугу</button>
+  </div>
+
+  <div class="block-title">Список услуг</div>
+  <div id="servicesList"><div class="loading">Загружаю…</div></div>
+</div>
+
+<script>
+/* ============================================================
+   ПОДКЛЮЧЕНИЕ К БАЗЕ — уже настроено, ничего менять не нужно
+   ============================================================ */
+var SUPABASE_URL = "https://ilfxyvsqintvjbifqxvr.supabase.co";
+var SUPABASE_KEY = "sb_publishable_GEl1zhHAxT_i8zU2F86cOA_-G6n7uBH";
+
+function apiHeaders() {
+  return {
+    "apikey": SUPABASE_KEY,
+    "Authorization": "Bearer " + SUPABASE_KEY,
+    "Content-Type": "application/json",
+    "Prefer": "return=representation"
+  };
+}
+
+/* ---------- Сообщения пользователю ---------- */
+var msgTimer = null;
+function showMsg(text, isError) {
+  var box = document.getElementById("msgBox");
+  box.textContent = text;
+  box.className = "msg-inner " + (isError ? "msg-error" : "msg-ok");
+  box.style.display = "block";
+  if (msgTimer) clearTimeout(msgTimer);
+  msgTimer = setTimeout(function () { box.style.display = "none"; }, 5000);
+}
+
+/* ---------- Вкладки ---------- */
+function showTab(name) {
+  document.getElementById("sectionDoctors").className = "section" + (name === "doctors" ? " active" : "");
+  document.getElementById("sectionServices").className = "section" + (name === "services" ? " active" : "");
+  document.getElementById("tabDoctors").className = "tab-btn" + (name === "doctors" ? " active" : "");
+  document.getElementById("tabServices").className = "tab-btn" + (name === "services" ? " active" : "");
+}
+
+/* ---------- Защита текста ---------- */
+function esc(s) {
+  if (s === null || s === undefined) return "";
+  return String(s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+/* ============================================================
+   ВРАЧИ
+   ============================================================ */
+var doctorsData = [];
+
+function loadDoctors() {
+  fetch(SUPABASE_URL + "/rest/v1/sakura_doctors?select=*&order=id", { headers: apiHeaders() })
+    .then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then(function (data) {
+      doctorsData = data;
+      renderDoctors();
+      document.getElementById("connStatus").textContent = "✅ Связь с базой установлена";
+      document.getElementById("connStatus").className = "conn-status conn-ok";
+    })
+    .catch(function (e) {
+      document.getElementById("doctorsList").innerHTML =
+        '<div class="loading">Не удалось загрузить список.</div>';
+      document.getElementById("connStatus").textContent = "⚠️ Нет связи с базой. Проверьте интернет и обновите страницу.";
+      document.getElementById("connStatus").className = "conn-status conn-error";
+    });
+}
+
+function renderDoctors() {
+  var html = "";
+  if (doctorsData.length === 0) {
+    html = '<div class="loading">Пока нет ни одного врача. Добавьте первого через форму выше.</div>';
+  }
+  for (var i = 0; i < doctorsData.length; i++) {
+    var d = doctorsData[i];
+    var active = (d.is_active !== false);
+    html += '<div class="item' + (active ? "" : " inactive") + '" id="doc-' + d.id + '">'
+      + '<div class="item-name">' + esc(d.full_name) + '</div>'
+      + '<div class="item-sub">' + (d.specialty ? esc(d.specialty) : "Специальность не указана") + '</div>'
+      + '<span class="item-badge ' + (active ? "badge-on" : "badge-off") + '">'
+      + (active ? "Работает" : "Отключён") + '</span>'
+      + '<div class="item-actions">'
+      + '<button class="btn btn-edit" onclick="editDoctor(' + d.id + ')">✏️ Изменить</button>'
+      + '<button class="btn btn-toggle" onclick="toggleDoctor(' + d.id + ', ' + (active ? "false" : "true") + ')">'
+      + (active ? "Отключить" : "Включить") + '</button>'
+      + '</div></div>';
+  }
+  document.getElementById("doctorsList").innerHTML = html;
+}
+
+function addDoctor() {
+  var name = document.getElementById("docName").value.trim();
+  var spec = document.getElementById("docSpec").value.trim();
+  if (!name) { showMsg("Введите ФИО врача.", true); return; }
+
+  fetch(SUPABASE_URL + "/rest/v1/sakura_doctors", {
+    method: "POST",
+    headers: apiHeaders(),
+    body: JSON.stringify({ full_name: name, specialty: spec || null, is_active: true })
+  })
+    .then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then(function () {
+      document.getElementById("docName").value = "";
+      document.getElementById("docSpec").value = "";
+      showMsg("Врач «" + name + "» добавлен.", false);
+      loadDoctors();
+    })
+    .catch(function () { showMsg("Не удалось добавить. Проверьте связь и попробуйте ещё раз.", true); });
+}
+
+function editDoctor(id) {
+  var d = null;
+  for (var i = 0; i < doctorsData.length; i++) { if (doctorsData[i].id === id) d = doctorsData[i]; }
+  if (!d) return;
+
+  var el = document.getElementById("doc-" + id);
+  el.innerHTML =
+      '<label>ФИО врача</label>'
+    + '<input type="text" id="editDocName-' + id + '" value="' + esc(d.full_name) + '">'
+    + '<label>Специальность</label>'
+    + '<input type="text" id="editDocSpec-' + id + '" value="' + esc(d.specialty) + '">'
+    + '<div class="item-actions">'
+    + '<button class="btn btn-save" onclick="saveDoctor(' + id + ')">💾 Сохранить</button>'
+    + '<button class="btn btn-cancel" onclick="renderDoctors()">Отмена</button>'
+    + '</div>';
+}
+
+function saveDoctor(id) {
+  var name = document.getElementById("editDocName-" + id).value.trim();
+  var spec = document.getElementById("editDocSpec-" + id).value.trim();
+  if (!name) { showMsg("ФИО не может быть пустым.", true); return; }
+
+  fetch(SUPABASE_URL + "/rest/v1/sakura_doctors?id=eq." + id, {
+    method: "PATCH",
+    headers: apiHeaders(),
+    body: JSON.stringify({ full_name: name, specialty: spec || null })
+  })
+    .then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      showMsg("Изменения сохранены.", false);
+      loadDoctors();
+    })
+    .catch(function () { showMsg("Не удалось сохранить. Попробуйте ещё раз.", true); });
+}
+
+function toggleDoctor(id, newState) {
+  fetch(SUPABASE_URL + "/rest/v1/sakura_doctors?id=eq." + id, {
+    method: "PATCH",
+    headers: apiHeaders(),
+    body: JSON.stringify({ is_active: newState })
+  })
+    .then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      showMsg(newState ? "Врач включён." : "Врач отключён (в списках больше не показывается).", false);
+      loadDoctors();
+    })
+    .catch(function () { showMsg("Не удалось изменить статус. Попробуйте ещё раз.", true); });
+}
+
+/* ============================================================
+   УСЛУГИ
+   ============================================================ */
+var servicesData = [];
+
+function loadServices() {
+  fetch(SUPABASE_URL + "/rest/v1/sakura_services?select=*&order=id", { headers: apiHeaders() })
+    .then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then(function (data) {
+      servicesData = data;
+      renderServices();
+    })
+    .catch(function () {
+      document.getElementById("servicesList").innerHTML =
+        '<div class="loading">Не удалось загрузить список.</div>';
+    });
+}
+
+function formatPrice(p) {
+  if (p === null || p === undefined) return "Цена не указана";
+  var s = String(Math.round(Number(p)));
+  var out = "";
+  var count = 0;
+  for (var i = s.length - 1; i >= 0; i--) {
+    out = s.charAt(i) + out;
+    count++;
+    if (count % 3 === 0 && i > 0) out = " " + out;
+  }
+  return out + " ₸";
+}
+
+function renderServices() {
+  var html = "";
+  if (servicesData.length === 0) {
+    html = '<div class="loading">Пока нет ни одной услуги. Добавьте первую через форму выше.</div>';
+  }
+  for (var i = 0; i < servicesData.length; i++) {
+    var s = servicesData[i];
+    html += '<div class="item" id="srv-' + s.id + '">'
+      + '<div class="item-name">' + esc(s.name) + '</div>'
+      + '<div class="item-sub">' + (s.category ? esc(s.category) : "Категория не указана") + '</div>'
+      + '<div class="item-price">' + formatPrice(s.price) + '</div>'
+      + '<div class="item-actions">'
+      + '<button class="btn btn-edit" onclick="editService(' + s.id + ')">✏️ Изменить</button>'
+      + '</div></div>';
+  }
+  document.getElementById("servicesList").innerHTML = html;
+}
+
+function addService() {
+  var name = document.getElementById("srvName").value.trim();
+  var price = document.getElementById("srvPrice").value.trim();
+  var cat = document.getElementById("srvCat").value.trim();
+  if (!name) { showMsg("Введите название услуги.", true); return; }
+  if (!price || isNaN(Number(price))) { showMsg("Введите цену цифрами, например 15000.", true); return; }
+
+  fetch(SUPABASE_URL + "/rest/v1/sakura_services", {
+    method: "POST",
+    headers: apiHeaders(),
+    body: JSON.stringify({ name: name, price: Number(price), category: cat || null })
+  })
+    .then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then(function () {
+      document.getElementById("srvName").value = "";
+      document.getElementById("srvPrice").value = "";
+      document.getElementById("srvCat").value = "";
+      showMsg("Услуга «" + name + "» добавлена.", false);
+      loadServices();
+    })
+    .catch(function () { showMsg("Не удалось добавить. Проверьте связь и попробуйте ещё раз.", true); });
+}
+
+function editService(id) {
+  var s = null;
+  for (var i = 0; i < servicesData.length; i++) { if (servicesData[i].id === id) s = servicesData[i]; }
+  if (!s) return;
+
+  var el = document.getElementById("srv-" + id);
+  el.innerHTML =
+      '<label>Название услуги</label>'
+    + '<input type="text" id="editSrvName-' + id + '" value="' + esc(s.name) + '">'
+    + '<label>Цена, ₸ (только цифры)</label>'
+    + '<input type="number" id="editSrvPrice-' + id + '" value="' + (s.price !== null && s.price !== undefined ? s.price : "") + '">'
+    + '<label>Категория</label>'
+    + '<input type="text" id="editSrvCat-' + id + '" value="' + esc(s.category) + '">'
+    + '<div class="item-actions">'
+    + '<button class="btn btn-save" onclick="saveService(' + id + ')">💾 Сохранить</button>'
+    + '<button class="btn btn-cancel" onclick="renderServices()">Отмена</button>'
+    + '</div>';
+}
+
+function saveService(id) {
+  var name = document.getElementById("editSrvName-" + id).value.trim();
+  var price = document.getElementById("editSrvPrice-" + id).value.trim();
+  var cat = document.getElementById("editSrvCat-" + id).value.trim();
+  if (!name) { showMsg("Название не может быть пустым.", true); return; }
+  if (!price || isNaN(Number(price))) { showMsg("Введите цену цифрами, например 15000.", true); return; }
+
+  fetch(SUPABASE_URL + "/rest/v1/sakura_services?id=eq." + id, {
+    method: "PATCH",
+    headers: apiHeaders(),
+    body: JSON.stringify({ name: name, price: Number(price), category: cat || null })
+  })
+    .then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      showMsg("Изменения сохранены.", false);
+      loadServices();
+    })
+    .catch(function () { showMsg("Не удалось сохранить. Попробуйте ещё раз.", true); });
+}
+
+/* ---------- Запуск ---------- */
+loadDoctors();
+loadServices();
+</script>
+
+</body>
+</html>
