@@ -360,7 +360,7 @@ body{background:linear-gradient(180deg,#eef3f8 0%,#f8fbff 100%)}
     <div class="logo"><span class="logo-icon">⌂</span><div><div class="logo-text">Центр управления</div><div class="logo-sub">СИСТЕМА КОНТРОЛЯ ПРИБЫЛИ</div></div></div>
     <div class="header-right">
       <button class="hdr-icon home-start" onclick="startPage()" title="На стартовую"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21v-6h6v6"/></svg></button>
-      <button class="hdr-icon"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+      <button class="hdr-icon" onclick="logoutUser()" title="Выйти"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
       <div class="live-dot"><div class="dot"></div>LIVE</div>
     </div>
   </div>
@@ -627,6 +627,10 @@ async function loadSettings(){try{const settings=await sbFetch('sakura_settings'
 const OWNER_CODE='1949';   // код владельца — видит всё, включая Настройки
 const ADMIN_CODE='2025';   // код администратора — без Настроек
 
+function logoutUser(){
+  sessionStorage.removeItem('smb_role');
+  startPage();}
+
 function openDash(){
   if(!sessionStorage.getItem('smb_role')){showLogin();return;}
   applyRole();
@@ -752,6 +756,50 @@ async function loadDoctorsToSelect() {
 
 // Запускаем загрузку при открытии страницы
 document.addEventListener('DOMContentLoaded', loadDoctorsToSelect);
+
+/* ===== ЗАГРУЗКА УСЛУГ ИЗ БАЗЫ =====
+   Заполняет списки услуг во вкладках Лиды, Консультация и Касса/Процедура
+   из таблицы sakura_services. Если базы нет — остаются стандартные списки. */
+async function loadServicesToSelect() {
+  try {
+    const url = 'https://ilfxyvsqintvjbifqxvr.supabase.co/rest/v1/sakura_services?select=*&order=name';
+    const response = await fetch(url, {
+      headers: {
+        'apikey': 'sb_publishable_GEl1zhHAxT_i8zU2F86cOA_-G6n7uBH'
+      }
+    });
+    const services = await response.json();
+
+    if (Array.isArray(services) && services.length > 0) {
+      const options = services.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+      const selectsToUpdate = ['lProcedure', 'cProcedure', 'pName'];
+      selectsToUpdate.forEach(function (id) {
+        const sel = document.getElementById(id);
+        if (sel) {
+          sel.innerHTML = '<option value="">— выберите —</option>' + options + '<option>Другое</option>';
+        }
+      });
+
+      // Автоподстановка цены в Кассе: выбрал услугу — цена из прайса встала сама (можно поправить руками)
+      const pName = document.getElementById('pName');
+      if (pName) {
+        pName.addEventListener('change', function () {
+          let svc = null;
+          for (let i = 0; i < services.length; i++) {
+            if (services[i].name === this.value) svc = services[i];
+          }
+          const pRev = document.getElementById('pRevenue');
+          if (svc && svc.price && pRev) {
+            pRev.value = Math.round(Number(svc.price));
+          }
+        });
+      }
+    }
+  } catch (e) {
+    console.warn('Не удалось загрузить услуги из базы', e);
+  }
+}
+document.addEventListener('DOMContentLoaded', loadServicesToSelect);
 </script>
 </body>
 </html>
